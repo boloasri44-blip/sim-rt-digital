@@ -5,7 +5,7 @@ const JENIS = ['Utama', 'Sosial', 'Pembangunan'];
 const $ = i => document.getElementById(i);
 const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const rp = n => 'Rp ' + Number(n || 0).toLocaleString('id-ID');
-const BD = { Tetap: 'ok', Kontrak: 'wa', Aktif: 'ok', Arsip: 'mu', Baru: 'no', Diproses: 'wa', Selesai: 'ok', Pemasukan: 'ok', Pengeluaran: 'no', Saran: 'in', Aduan: 'no', 'Baik': 'ok', 'Rusak Ringan': 'wa', 'Rusak Berat': 'no', 'Hilang': 'mu', Menunggu: 'wa', Disetujui: 'ok', Dipinjam: 'in', Dikembalikan: 'mu', Ditolak: 'no', 'Pengembalian Diajukan': 'wa' };
+const BD = { Tetap: 'ok', Kontrak: 'wa', Aktif: 'ok', Arsip: 'mu', Baru: 'no', Diproses: 'wa', Selesai: 'ok', Pemasukan: 'ok', Pengeluaran: 'no', Saran: 'in', Aduan: 'no', 'Baik': 'ok', 'Rusak Ringan': 'wa', 'Rusak Berat': 'no', 'Hilang': 'mu', Menunggu: 'wa', Disetujui: 'ok', Dipinjam: 'in', Dikembalikan: 'mu', Ditolak: 'no', 'Pengembalian Diajukan': 'wa', Rusak: 'no', Dijual: 'in', Dihibahkan: 'in', 'Habis Terpakai': 'wa' };
 const badge = v => `<span class="bdg bdg-${BD[v] || 'mu'}">${esc(v)}</span>`;
 const hariIni = () => new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 10);
 const skel = '<div class="skel"></div><div class="skel"></div><div class="skel"></div>';
@@ -140,12 +140,12 @@ function prosesLogin() {
   api('masuk', [d.u, d.p], r => {
     S.t = r.token; S.u = r; setKasInfo(r.kasInfo); mHide();
     $('v-publik').hidden = true; $('v-admin').hidden = false;
-    bangunNav(); buka('dashboard'); toast('Selamat datang, ' + r.nama + '!');
+    semaiCacheLogin(r); bangunNav(); buka('dashboard'); toast('Selamat datang, ' + r.nama + '!'); setTimeout(prefetchAwal, 700);
   }, $('mS'));
 }
 function keluar() { api('keluar', [S.t], keluarLokal, null, () => { keluarLokal(); return true; }); }
 function keluarLokal() {
-  S.t = S.u = null; S.tab = {}; S.kas = S.as = S.rk = S.pg = S.atr = null; // jangan bawa posisi menu pengguna sebelumnya
+  cacheKosongkan(); S.t = S.u = null; S.tab = {}; S.kas = S.as = S.rk = S.pg = S.atr = null; // jangan bawa posisi menu pengguna sebelumnya
   $('v-admin').hidden = true; $('v-publik').hidden = false; muatPublik(); muatPublikTambahan();
 }
 
@@ -253,9 +253,9 @@ const R = {
   },
   aset() {
     const proses = true; // semua pengurus melihat Daftar Aset dan Peminjaman
-    if (!['daftar', 'pinjam'].includes(S.as)) S.as = 'daftar';
-    $('konten').innerHTML = (proses ? `<div class="d-flex flex-wrap gap-2 mb-3 no-print"><button class="pill-tab ${S.as === 'daftar' ? 'on' : ''}" onclick="S.as='daftar';R.aset()"><i class="bi bi-box-seam"></i> Daftar Aset</button><button class="pill-tab ${S.as === 'pinjam' ? 'on' : ''}" onclick="S.as='pinjam';R.aset()"><i class="bi bi-arrow-left-right"></i> Peminjaman</button></div>` : '') + `<div id="asIsi">${skel}</div>`;
-    if (S.as === 'pinjam') asPinjam(); else asDaftar();
+    if (!['daftar', 'pinjam', 'keluar'].includes(S.as)) S.as = 'daftar';
+    $('konten').innerHTML = (proses ? `<div class="d-flex flex-wrap gap-2 mb-3 no-print"><button class="pill-tab ${S.as === 'daftar' ? 'on' : ''}" onclick="S.as='daftar';R.aset()"><i class="bi bi-box-seam"></i> Daftar Aset</button><button class="pill-tab ${S.as === 'pinjam' ? 'on' : ''}" onclick="S.as='pinjam';R.aset()"><i class="bi bi-arrow-left-right"></i> Peminjaman</button><button class="pill-tab ${S.as === 'keluar' ? 'on' : ''}" onclick="S.as='keluar';R.aset()"><i class="bi bi-box-arrow-up"></i> Pengeluaran</button></div>` : '') + `<div id="asIsi">${skel}</div>`;
+    if (S.as === 'pinjam') asPinjam(); else if (S.as === 'keluar') asKeluar(); else asDaftar();
   },
   rekap() {
     const m = REKAP.filter(x => x.ada());
@@ -271,6 +271,7 @@ const R = {
     m.find(x => x.id === S.pg).render();
   }
 };
+Object.keys(R).forEach(n => { const f = R[n]; R[n] = function () { _layar++; return f.apply(this, arguments); }; }); // penanda 'pindah layar' untuk api.js
 
 /* ── Form-form ── */
 const HUB = ['Istri', 'Suami', 'Anak', 'Orang Tua', 'Mertua', 'Cucu', 'Famili Lain', 'Lainnya'];
@@ -567,7 +568,7 @@ function asDaftar() {
       tabel('tAs', [{ h: 'Kode', k: 'Kode', f: r => `<code>${esc(r.Kode)}</code>` }, { h: 'Nama', k: 'Nama', f: r => `<b>${esc(r.Nama)}</b>` }, { h: 'Kategori', k: 'Kategori' },
         { h: 'Jumlah', k: 'Jumlah_Unit', f: r => `${esc(r.Jumlah_Unit)} ${esc(r.Satuan)}` }, { h: 'Kondisi', k: 'Kondisi', f: r => badge(r.Kondisi) }, { h: 'Lokasi', k: 'Lokasi' },
         { h: 'Penanggung jawab', k: 'Penanggung_Jawab' }, { h: 'Dipinjamkan', k: 'Bisa_Dipinjam', f: r => r.Bisa_Dipinjam === 'Tidak' ? '<span class="bdg bdg-mu">Tidak</span>' : '<span class="bdg bdg-in">Ya</span>' }, { h: 'Nilai', k: 'Nilai_Perolehan', f: r => Number(r.Nilai_Perolehan) ? rp(r.Nilai_Perolehan) : '-' },
-        { h: '', f: r => (ubah ? btnEdit(`formAset('${r.ID_Aset}')`) : '') + btnDel('Aset', r.ID_Aset, 'aset') }], rows, { saring: ['Kategori', KAT_ASET] });
+        { h: '', f: r => (ubah ? btnEdit(`formAset('${r.ID_Aset}')`) : '') + (adaHak(PERAN_ASET_KELUAR) && Number(r.Jumlah_Unit) > 0 ? ` <button class="btn btn-sm btn-ghost" onclick="formKeluar('${r.ID_Aset}')" aria-label="Catat pengeluaran" title="Catat pengeluaran"><i class="bi bi-box-arrow-up"></i></button>` : '') + btnDel('Aset', r.ID_Aset, 'aset') }], rows, { saring: ['Kategori', KAT_ASET] });
     });
 }
 const waLink = k => { let n = String(k || '').replace(/\D/g, ''); if (n.startsWith('0')) n = '62' + n.slice(1); return n ? `<a href="https://wa.me/${n}" target="_blank" rel="noopener" aria-label="Hubungi lewat WhatsApp"><i class="bi bi-whatsapp"></i></a>` : ''; };
@@ -611,6 +612,47 @@ function formAturan(id) {
 }
 function aturTampil(id, tampil) {
   api('aturTampilAduan', [S.t, id, tampil], () => { toast(tampil ? 'Aduan ditampilkan di portal warga.' : 'Aduan disembunyikan dari portal warga.'); R.aduan(); });
+}
+
+/* ── Pengeluaran aset: mengurangi stok (dan kondisi) aset pada saat itu; riwayat tersimpan di sheet Aset_Keluar ── */
+const PERAN_ASET_KELUAR = ['Ketua RT', 'Sie Sapras', 'Sie Pembangunan'];
+const ALASAN_KELUAR = ['Rusak', 'Hilang', 'Dijual', 'Dihibahkan', 'Habis Terpakai', 'Lainnya'];
+function asKeluar() {
+  api('listPengeluaranAset', [S.t], rows => {
+    S.tab.klr = rows;
+    const boleh = adaHak(PERAN_ASET_KELUAR), bln = hariIni().slice(0, 7);
+    const unitBln = rows.filter(r => String(r.Tanggal).slice(0, 7) === bln).reduce((a, r) => a + (Number(r.Jumlah) || 0), 0);
+    $('asIsi').innerHTML = kepala('Pengeluaran Aset', boleh ? '<button class="btn btn-pri rounded-pill" onclick="formKeluar()"><i class="bi bi-plus-lg"></i> Catat Pengeluaran</button>' : '') +
+      '<p class="small text-muted">Catat aset yang keluar (rusak, hilang, dijual, dihibahkan, habis terpakai). Stok di Daftar Aset otomatis berkurang dan riwayatnya tersimpan di sini.</p>' +
+      catatanLihat(boleh, 'Ketua RT, Sie Sapras, dan Sie Pembangunan (mencatat pengeluaran aset)') +
+      `<div class="row g-3 mb-3">${kartuStat('Kejadian pengeluaran', rows.length)}${kartuStat('Unit keluar bulan ini', unitBln.toLocaleString('id-ID'))}</div><div id="tKlr"></div>`;
+    tabel('tKlr', [{ h: 'Tanggal', k: 'Tanggal', f: r => esc(String(r.Tanggal).slice(0, 10)) },
+      { h: 'Aset', k: 'Nama_Aset', f: r => `<b>${esc(r.Nama_Aset)}</b><br><small><code>${esc(r.Kode_Aset)}</code></small>` },
+      { h: 'Jumlah', k: 'Jumlah', f: r => `− ${esc(r.Jumlah)} ${esc(r.Satuan)}` },
+      { h: 'Alasan', k: 'Alasan', f: r => badge(r.Alasan) },
+      { h: 'Stok', k: 'Stok_Sesudah', f: r => `${esc(r.Stok_Sebelum)} → <b>${esc(r.Stok_Sesudah)}</b>` },
+      { h: 'Kondisi', k: 'Kondisi_Sesudah', f: r => r.Kondisi_Sebelum === r.Kondisi_Sesudah ? badge(r.Kondisi_Sesudah) : `${badge(r.Kondisi_Sebelum)} → ${badge(r.Kondisi_Sesudah)}` },
+      { h: 'Keterangan', k: 'Keterangan', f: r => `<span style="white-space:normal;display:inline-block;min-width:180px">${esc(r.Keterangan)}</span>` },
+      { h: 'Dicatat oleh', k: 'Dicatat_Oleh', f: r => `${esc(r.Dicatat_Oleh)}<br><small>${esc(String(r.Tgl_Input).slice(0, 16))}</small>` }],
+      rows, { saring: ['Alasan', ALASAN_KELUAR] });
+  });
+}
+function formKeluar(id) {
+  api('listAset', [S.t], rows => { // stok diambil terbaru agar pilihan akurat
+    S.tab.aset = rows;
+    const ada = rows.filter(a => Number(a.Jumlah_Unit) > 0);
+    if (!ada.length) return toast('Belum ada aset dengan stok yang bisa dikeluarkan.');
+    const pilih = id && ada.some(a => a.ID_Aset === id) ? id : ada[0].ID_Aset, t = hariIni();
+    modalX('Catat Pengeluaran Aset',
+      `<div class="mb-3"><label class="form-label" for="f_idAset">Aset *</label><select class="form-select" name="idAset" id="f_idAset" required>${ada.map(a => `<option value="${esc(a.ID_Aset)}" ${a.ID_Aset === pilih ? 'selected' : ''}>${esc(a.Kode)} · ${esc(a.Nama)} (stok ${esc(a.Jumlah_Unit)} ${esc(a.Satuan)} · ${esc(a.Kondisi)})</option>`).join('')}</select><div class="form-text">Unit yang sedang dipinjam warga tidak bisa dikeluarkan; sistem memeriksanya otomatis.</div></div>` +
+      F('jumlah', 'Jumlah yang keluar', 'number', 1, { req: 1, min: 1, attr: 'step="1" inputmode="numeric"' }) + F('alasan', 'Alasan pengeluaran', 'select', 'Rusak', { opsi: ALASAN_KELUAR }) +
+      F('tanggal', 'Tanggal kejadian', 'date', t, { req: 1, attr: `max="${t}"` }) +
+      `<div class="mb-3"><label class="form-label" for="f_kondisi">Kondisi aset sesudahnya</label><select class="form-select" name="kondisi" id="f_kondisi"><option value="">Tidak diubah</option>${KONDISI_ASET.map(k => `<option>${esc(k)}</option>`).join('')}</select><div class="form-text">Isi bila kondisi unit yang tersisa ikut berubah (mis. sisa unit menjadi Rusak Ringan).</div></div>` +
+      F('keterangan', 'Keterangan', 'textarea', '', { req: 1, max: 300, minlen: 5 }), 'Catat', () => {
+        const d = ambil(); if (!d) return;
+        api('catatPengeluaranAset', [S.t, d], () => { mHide(); toast('Pengeluaran dicatat. Stok aset berkurang.'); R.aset(); }, $('mS'));
+      });
+  }, null, null, { tanpaCache: true }); // stok selalu diambil baru & formulir tidak boleh dirender ulang saat sedang diisi
 }
 
 /* ── Portal warga: aturan, daftar aduan & saran (hide/unhide), peminjaman aset ── */
@@ -802,6 +844,23 @@ function rkAduan() {
       <div class="col-12 col-md-4"><div class="card-x p-3 h-100"><h2 class="h6">Aduan vs Saran</h2>${daftarBar(ur(d.jenis), '#F97316')}</div></div>
       <div class="col-12 col-md-4"><div class="card-x p-3 h-100"><h2 class="h6">6 Bulan Terakhir</h2>${daftarBar(d.bulanan.map(b => [labelBln(b.Bulan), b.Jumlah]), '#14B8A6')}</div></div></div>`;
   });
+}
+
+
+/* ── Kecepatan: benih cache dari respons login + muat menu lain lebih dulu ── */
+function semaiCacheLogin(r) {
+  if (r.dash) _cache.set(kunciBaca('getDashboard', [r.token]), { data: r.dash, t: Date.now() }); // dashboard ikut dalam respons login
+  delete r.dash;
+}
+function prefetchAwal() {
+  if (!S.t || !S.u) return;
+  const t = S.t, u = S.u, ks = u.kas || [];
+  const kasAwal = (u.kasTambah || []).find(x => ks.includes(x)) || ks[0]; // sama dengan kas yang dibuka pertama kali di menu Keuangan
+  const q = [];
+  if (kasAwal) q.push(['listKas', [t, kasAwal]]);
+  q.push(['listWarga', [t]], ['listInfo', [t]], ['listAset', [t]], ['listAduan', [t]], ['listAturan', [t]], ['listPeminjaman', [t]], ['listPengeluaranAset', [t]], ['listKasMaster', [t]], ['getPengaturan', [t]]);
+  if (u.peran === 'Ketua RT') q.push(['listUser', [t]]);
+  prefetchBaca(q);
 }
 
 /* ── Inisialisasi ── */
