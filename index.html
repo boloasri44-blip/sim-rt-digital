@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="id" data-theme="light" data-bs-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>RT.Digital</title>
+<meta name="description" content="Portal warga dan pengurus RT: transparansi kas, pengumuman, aturan, aduan, dan peminjaman aset.">
+<meta name="theme-color" content="#F97316">
+<meta property="og:title" content="RT.Digital">
+<meta property="og:description" content="Portal warga dan pengurus RT: transparansi kas, pengumuman, aturan, aduan, dan peminjaman aset.">
+<link rel="icon" type="image/webp" href="assets/logo.webp">
+<link rel="apple-touch-icon" href="assets/logo.webp">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="css/style.css" rel="stylesheet">
+</head>
+<body>
+<noscript><p style="padding:2rem;text-align:center">Aplikasi ini memerlukan JavaScript. Aktifkan JavaScript di browser Anda.</p></noscript>
+<div id="muat" class="muat"><div class="spinner-border" role="status"><span class="visually-hidden">Memuat...</span></div></div>
+
+<!-- ═══ PORTAL WARGA (publik) ═══ -->
+<div id="v-publik">
+  <header class="hd"><div class="wrap hd-in">
+    <div class="brand"><span class="logo" role="img" aria-label="Logo"></span><div style="line-height:1.15"><b class="app-nama">RT.Digital</b><br><small class="app-wil text-muted"></small></div></div>
+    <div class="d-flex gap-2">
+      <button class="ib" onclick="tema()" aria-label="Ganti tema"><i class="bi bi-moon-stars"></i></button>
+      <button class="btn btn-pri rounded-pill" onclick="bukaLogin()"><i class="bi bi-lock"></i> Login Pengurus</button>
+    </div>
+  </div></header>
+  <main class="wrap">
+    <section class="hero">
+      <h1 id="heroJudul">Transparansi &amp; Pelayanan Komunitas Warga</h1>
+      <p id="heroDesk">Informasi keuangan terbuka, pengumuman, dan kanal aspirasi digital untuk kemakmuran bersama.</p>
+      <button class="btn btn-pri rounded-pill" onclick="document.getElementById('aduan').scrollIntoView({behavior:'smooth'})">Kirim Aduan / Saran</button>
+    </section>
+    <div id="pSaldo" class="row g-3 mb-4"><div class="col-12"><div class="skel"></div></div></div>
+    <div class="card-x p-3 mb-4">
+      <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-2">
+        <h2 class="h6 m-0">Arus Kas: Pemasukan vs Pengeluaran</h2>
+        <select id="periode" class="form-select w-auto" onchange="muatPublik()" aria-label="Periode">
+          <option value="bulan">Bulan ini</option><option value="6bulan" selected>6 bulan terakhir</option><option value="tahun">Tahun ini</option>
+        </select>
+      </div>
+      <div style="height:260px"><canvas id="cPublik"></canvas></div>
+      <small id="pWaktu"></small>
+    </div>
+    <div class="card-x p-3 mb-4"><h2 class="h6">Pengumuman Terbaru</h2><div id="pInfo"></div></div>
+    <div class="card-x p-3 mb-4" id="aturanCard"><h2 class="h6">Aturan Lingkungan</h2><div id="pAturan"><div class="skel"></div></div></div>
+    <div class="card-x p-3 mb-4" id="aduanList">
+      <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-2"><h2 class="h6 m-0">Aduan &amp; Saran Warga</h2>
+        <button type="button" class="btn btn-ghost btn-sm" id="btnAduanToggle" onclick="aduanToggle()" aria-controls="pAduanList" aria-expanded="true"><i class="bi bi-eye-slash"></i> <span>Sembunyikan</span></button></div>
+      <small class="text-muted d-block mb-2">Nama dan kontak pengirim tidak ditampilkan. Aduan dan saran tampil setelah ditinjau pengurus.</small>
+      <div id="pAduanList"><div class="skel"></div></div>
+    </div>
+    <div class="card-x p-3 mb-4" id="aduan">
+      <h2 class="h6">Formulir Layanan Warga</h2>
+      <div class="d-flex gap-2 flex-wrap mb-3">
+        <button type="button" class="pill-tab on" id="tabAduan" onclick="formTab('aduan')">Saran &amp; Pengaduan</button>
+        <button type="button" class="pill-tab" id="tabPinjam" onclick="formTab('pinjam')">Peminjaman Aset</button>
+        <button type="button" class="pill-tab" id="tabKembali" onclick="formTab('kembali')">Pengembalian Aset</button>
+      </div>
+      <form id="fAduan" onsubmit="submitAduan(event)">
+        <div class="row g-3">
+          <div class="col-6 col-md-3"><label class="form-label" for="a_jenis">Jenis *</label><select id="a_jenis" name="jenis" class="form-select"><option>Aduan</option><option>Saran</option></select></div>
+          <div class="col-6 col-md-3"><label class="form-label" for="a_kat">Kategori *</label><select id="a_kat" name="kategori" class="form-select"><option>Umum</option><option>Sosial</option><option>Pembangunan</option></select></div>
+          <div class="col-12"><label class="form-label" for="a_isi">Uraian *</label><textarea id="a_isi" name="isi" class="form-control" rows="4" required minlength="10" maxlength="1500" placeholder="Contoh: Lampu penerangan jalan di depan Blok C No. 04 padam sejak 2 hari lalu..."></textarea></div>
+          <div class="col-12"><label class="form-label" for="a_file">Lampiran (opsional)</label><div class="upload"><i class="bi bi-cloud-arrow-up fs-4"></i><br><input id="a_file" name="berkas" type="file" class="form-control mt-2" accept=".jpg,.jpeg,.png,.pdf"><small>Maks. 5 MB. Format JPG, PNG, PDF</small></div></div>
+          <div class="col-md-6"><label class="form-label" for="a_nama">Nama (opsional)</label><input id="a_nama" name="nama" class="form-control" maxlength="80"></div>
+          <div class="col-md-6"><label class="form-label" for="a_kontak">Kontak / WA (opsional)</label><input id="a_kontak" name="kontak" class="form-control" maxlength="40"></div>
+          <div class="col-12 text-end"><button type="submit" class="btn btn-pri rounded-pill"><i class="bi bi-send"></i> Kirim Sekarang</button></div>
+        </div>
+      </form>
+      <form id="fPinjam" onsubmit="submitPinjam(event)" hidden>
+        <div class="row g-3">
+          <div class="col-md-6"><label class="form-label" for="p_nama">Nama peminjam *</label><input id="p_nama" name="nama" class="form-control" required maxlength="80"></div>
+          <div class="col-md-6"><label class="form-label" for="p_kontak">No. WhatsApp / HP *</label><input id="p_kontak" name="kontak" type="tel" inputmode="tel" class="form-control" required maxlength="30" placeholder="08xxxxxxxxxx"></div>
+          <div class="col-md-6"><label class="form-label" for="p_alamat">Blok / No. rumah</label><input id="p_alamat" name="alamat" class="form-control" maxlength="80"></div>
+          <div class="col-md-6"><label class="form-label" for="p_aset">Aset yang dipinjam *</label><select id="p_aset" name="idAset" class="form-select" required><option value="">Memuat daftar aset…</option></select></div>
+          <div class="col-6 col-md-3"><label class="form-label" for="p_jumlah">Jumlah *</label><input id="p_jumlah" name="jumlah" type="number" min="1" value="1" required class="form-control"></div>
+          <div class="col-6 col-md-3"><label class="form-label" for="p_tgl1">Tanggal pinjam *</label><input id="p_tgl1" name="tglPinjam" type="date" required class="form-control"></div>
+          <div class="col-12"><label class="form-label" for="p_perlu">Keperluan *</label><textarea id="p_perlu" name="keperluan" rows="3" required minlength="5" maxlength="300" class="form-control" placeholder="Contoh: Acara syukuran keluarga di Blok C"></textarea></div>
+          <div class="col-12"><small class="text-muted">Pengajuan ditinjau pengurus dan Anda dihubungi lewat WhatsApp. Tanggal pengembalian dicatat saat Anda mengajukan pengembalian.</small></div>
+          <div class="col-12 text-end"><button type="submit" class="btn btn-pri rounded-pill"><i class="bi bi-send"></i> Ajukan Peminjaman</button></div>
+        </div>
+      </form>
+      <form id="fKembali" onsubmit="submitKembali(event)" hidden>
+        <div class="row g-3">
+          <div class="col-12"><small class="text-muted">Masukkan nama dan nomor WhatsApp/HP yang Anda pakai saat mengajukan peminjaman, lalu pilih peminjaman yang akan dikembalikan.</small></div>
+          <div class="col-md-5"><label class="form-label" for="kb_nama">Nama peminjam *</label><input id="kb_nama" name="nama" class="form-control" required maxlength="80" autocomplete="name"></div>
+          <div class="col-md-5"><label class="form-label" for="kb_kontak">No. WhatsApp / HP *</label><input id="kb_kontak" name="kontak" type="tel" inputmode="tel" class="form-control" required maxlength="30" placeholder="08xxxxxxxxxx"></div>
+          <div class="col-md-2 d-flex align-items-end"><button type="button" class="btn btn-soft w-100" id="kbCari" onclick="cariPinjamanSaya()"><i class="bi bi-search"></i> Cari</button></div>
+          <div class="col-12" id="kbList"></div>
+          <div class="col-12" id="kbDetail" hidden>
+            <div class="row g-3">
+              <div class="col-md-6"><label class="form-label" for="kb_pengembali">Penanggung jawab pengembalian *</label><input id="kb_pengembali" class="form-control" maxlength="80"></div>
+              <div class="col-md-6"><label class="form-label" for="kb_tgl">Tanggal pengembalian *</label><input id="kb_tgl" type="date" class="form-control"></div>
+              <div class="col-md-6"><label class="form-label" for="kb_kondisi">Kondisi barang saat dikembalikan *</label><select id="kb_kondisi" class="form-select"><option>Baik</option><option>Rusak Ringan</option><option>Rusak Berat</option><option>Ada yang hilang</option></select></div>
+              <div class="col-md-6"><label class="form-label" for="kb_catatan">Catatan (opsional)</label><input id="kb_catatan" class="form-control" maxlength="300" placeholder="Contoh: 1 kursi patah kakinya"></div>
+              <div class="col-12"><small class="text-muted">Pengembalian dinyatakan selesai setelah diterima dan dicatat oleh pengurus.</small></div>
+              <div class="col-12 text-end"><button type="submit" class="btn btn-pri rounded-pill"><i class="bi bi-box-arrow-in-down"></i> Ajukan Pengembalian</button></div>
+            </div>
+          </div>
+        </div>
+      </form>
+    </div>
+  </main>
+  <footer id="footTeks">© Rukun Tetangga · Sistem Informasi Warga</footer>
+</div>
+
+<!-- ═══ PORTAL PENGURUS (setelah login) ═══ -->
+<div id="v-admin" hidden>
+  <aside id="sb" class="sb">
+    <div class="sb-h"><span class="logo" role="img" aria-label="Logo"></span><div style="line-height:1.15"><b class="app-nama">RT.Digital</b><br><small style="color:#A5B4FC">PORTAL PENGURUS</small></div></div>
+    <div id="sbUser" class="sb-u"></div>
+    <nav id="nav"></nav>
+    <a class="sb-x" role="button" tabindex="0" onclick="keluar()"><i class="bi bi-box-arrow-left"></i> Keluar Portal</a>
+  </aside>
+  <div id="ov" class="sb-ov" onclick="sbTutup()"></div>
+  <div class="am">
+    <div class="tb">
+      <button class="ib d-lg-none" onclick="sbBuka()" aria-label="Menu"><i class="bi bi-list"></i></button>
+      <h1 id="judul" class="h5 m-0">Dashboard</h1>
+      <button class="ib ms-auto" onclick="tema()" aria-label="Ganti tema"><i class="bi bi-moon-stars"></i></button>
+    </div>
+    <div id="konten" class="p-3 p-lg-4"></div>
+  </div>
+</div>
+
+<!-- Modal serbaguna (login, form, konfirmasi) -->
+<div class="modal fade" id="modalX" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-fullscreen-sm-down"><div class="modal-content">
+    <div class="modal-header"><h5 class="modal-title" id="mJ"></h5><button class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button></div>
+    <form id="mF" onsubmit="return false" class="modal-body" style="overflow-y:auto"><div id="mB"></div></form>
+    <div class="modal-footer"><button class="btn btn-ghost" data-bs-dismiss="modal">Batal</button><button class="btn btn-pri" id="mS"></button></div>
+  </div></div>
+</div>
+
+<div class="toast-container position-fixed top-0 start-50 translate-middle-x p-3" style="z-index:3100">
+  <div id="toast" class="toast align-items-center border-0" role="alert"><div class="d-flex"><div class="toast-body" id="tBody"></div><button class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Tutup"></button></div></div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+<script src="js/config.js"></script>
+<script src="js/api.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>

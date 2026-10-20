@@ -1,0 +1,93 @@
+/* RT.Digital — gaya tampilan (frontend statis untuk GitHub Pages) */
+:root,[data-theme=light]{--bg:#F8FAFC;--card:#fff;--tx:#0F172A;--mu:#64748B;--bd:#E2E8F0;--pri:#F97316;--btn:#EA580C;--btn-h:#C2410C;--sb:#312E81;--sb-h:#3730A3;--ok:#10B981;--no:#EF4444;
+--sh:0 1px 3px rgba(15,23,42,.05),0 1px 2px rgba(15,23,42,.03);--sh2:0 4px 6px -1px rgba(15,23,42,.07);
+--b-ok:#D1FAE5;--t-ok:#047857;--b-wa:#FEF3C7;--t-wa:#B45309;--b-no:#FFE4E6;--t-no:#BE123C;--b-in:#E0E7FF;--t-in:#4338CA;--b-mu:#F1F5F9;--t-mu:#475569}
+[data-theme=dark]{--bg:#0F172A;--card:#1E293B;--tx:#F1F5F9;--mu:#94A3B8;--bd:#334155;--pri:#FB923C;--sb:#1E1B4B;--sb-h:#312E81;
+--sh:0 1px 3px rgba(0,0,0,.4);--sh2:0 4px 6px -1px rgba(0,0,0,.5);
+--b-ok:#064E3B;--t-ok:#6EE7B7;--b-wa:#451A03;--t-wa:#FCD34D;--b-no:#4C0519;--t-no:#FDA4AF;--b-in:#1E1B4B;--t-in:#A5B4FC;--b-mu:#334155;--t-mu:#CBD5E1}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{font-family:'Plus Jakarta Sans',system-ui,sans-serif;background:var(--bg);color:var(--tx);margin:0;font-size:14px;line-height:1.5;transition:background .25s,color .25s}
+h1,h2,h5{font-weight:700;letter-spacing:-.01em}
+:focus-visible{outline:2px solid var(--pri);outline-offset:2px}
+.wrap{max-width:1200px;margin:0 auto;padding:0 1rem}
+.muat{position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;z-index:3000;color:var(--pri)}
+
+/* Komponen umum */
+.card-x{background:var(--card);border:1px solid var(--bd);border-radius:12px;box-shadow:var(--sh);transition:box-shadow .2s,border-color .2s}
+.card-x:hover{box-shadow:var(--sh2)}
+.hero{background:linear-gradient(135deg,var(--hero1,#312E81),var(--hero2,#4F46E5));color:#fff;border-radius:16px;padding:1.75rem 1.5rem;margin:1.25rem 0}
+.hero h1{font-size:22px;margin:0 0 .4rem}.hero p{margin:0 0 1rem;opacity:.9}
+.k-Utama{--c:#F97316}.k-Sosial{--c:#8B5CF6}.k-Pembangunan{--c:#14B8A6}
+.saldo{border-top:3px solid var(--c);padding:1rem}
+.saldo .nilai,.nilai{font-size:24px;font-weight:700;letter-spacing:-.02em;line-height:1.3}
+.saldo small,.card-x small{color:var(--mu)}
+.pill{display:inline-block;padding:2px 10px;border-radius:9999px;font-size:11px;font-weight:700;letter-spacing:.03em;text-transform:uppercase;background:color-mix(in srgb,var(--c) 16%,transparent);color:color-mix(in srgb,var(--c) 65%,var(--tx))}
+.bdg{display:inline-block;padding:2px 10px;border-radius:9999px;font-size:11px;font-weight:700;letter-spacing:.03em;text-transform:uppercase}
+.bdg-ok{background:var(--b-ok);color:var(--t-ok)}.bdg-wa{background:var(--b-wa);color:var(--t-wa)}.bdg-no{background:var(--b-no);color:var(--t-no)}.bdg-in{background:var(--b-in);color:var(--t-in)}.bdg-mu{background:var(--b-mu);color:var(--t-mu)}
+.info{padding:.75rem 0;border-bottom:1px solid var(--bd)}.info:last-child{border:0}.info small{margin-left:.5rem}.info p{margin:.25rem 0 0;color:var(--mu);white-space:pre-line}
+
+/* Tombol */
+.btn{min-height:44px;font-weight:600;border-radius:8px;display:inline-flex;align-items:center;justify-content:center;gap:.4rem;transition:background .2s,transform .15s}
+.btn-sm{min-height:36px}
+.btn-pri{background:var(--btn);color:#fff;border:0}.btn-pri:hover,.btn-pri:focus{background:var(--btn-h);color:#fff}
+.btn-ok{background:var(--b-ok);color:var(--t-ok);border:0}.btn-no{background:var(--no);color:#fff;border:0}.btn-no:hover{background:#DC2626;color:#fff}
+.btn-soft{background:var(--b-in);color:var(--t-in);border:0}
+.btn-ghost{background:transparent;border:1px solid var(--bd);color:var(--tx)}.btn-ghost:hover{background:var(--b-mu);color:var(--tx)}
+.ib{width:44px;height:44px;border-radius:10px;border:1px solid var(--bd);background:var(--card);color:var(--tx);font-size:18px;display:inline-flex;align-items:center;justify-content:center}
+.pill-tab{border:1px solid var(--bd);background:var(--card);color:var(--tx);border-radius:9999px;padding:.5rem 1rem;min-height:44px;font-weight:600}
+.pill-tab.on{background:var(--btn);border-color:var(--btn);color:#fff}
+
+/* Form & tabel */
+.form-control,.form-select{min-height:42px;border-radius:8px;background-color:var(--card);color:var(--tx);border-color:var(--bd)}
+.form-control:focus,.form-select:focus{border-color:var(--pri);box-shadow:0 0 0 3px color-mix(in srgb,var(--pri) 25%,transparent);background-color:var(--card);color:var(--tx)}
+.form-label{font-weight:600;font-size:13px}
+.modal-content{background:var(--card);color:var(--tx);border-radius:16px}
+.modal-backdrop.show{opacity:.4;backdrop-filter:blur(4px)}
+.table{--bs-table-bg:transparent;--bs-table-color:var(--tx);--bs-table-border-color:var(--bd);white-space:nowrap}
+.table th{font-size:11px;letter-spacing:.03em;text-transform:uppercase;color:var(--mu);font-weight:700}
+.table th.srt{cursor:pointer}
+.table td{vertical-align:middle}.table tbody tr:hover>*{background:color-mix(in srgb,var(--pri) 6%,transparent)}
+.up{color:var(--t-ok);font-weight:700}.down{color:var(--t-no);font-weight:700}
+.upload{border:2px dashed var(--bd);border-radius:12px;padding:1rem;text-align:center;color:var(--mu)}
+.skel{height:84px;border-radius:12px;margin-bottom:.75rem;background:linear-gradient(90deg,var(--b-mu),var(--bd),var(--b-mu));background-size:200% 100%;animation:sk 1.2s infinite}
+@keyframes sk{to{background-position:-200% 0}}
+
+/* Portal warga */
+.hd{position:sticky;top:0;z-index:100;background:var(--card);border-bottom:1px solid var(--bd)}
+.hd-in{display:flex;align-items:center;justify-content:space-between;padding:.6rem 1rem}
+.brand{display:flex;align-items:center;gap:.6rem;font-size:16px}
+.logo{width:40px;height:40px;flex:none;border-radius:50%;display:inline-block;background:#fff var(--logo,url("../assets/logo.webp")) center/cover no-repeat}
+.logo-lg{width:96px;height:96px;display:block;margin:0 auto .75rem;box-shadow:0 4px 14px rgba(15,23,42,.18)}
+:root[data-logo=kustom] .logo,.logo.logo-k{background-color:transparent;background-size:contain;border-radius:10px}
+:root[data-logo=kustom] .logo-lg{border-radius:18px;box-shadow:none}
+footer{padding:2rem 1rem;text-align:center;color:var(--mu);font-size:12px}
+
+/* Portal pengurus */
+.sb{position:fixed;top:0;left:0;bottom:0;width:260px;background:var(--sb);color:#C7D2FE;display:flex;flex-direction:column;z-index:1040;transform:translateX(-100%);transition:transform .25s}
+.sb.buka{transform:none}
+.sb-h{padding:1.1rem 1.25rem;color:#fff;display:flex;gap:.6rem;align-items:center}
+.sb-u{margin:0 .75rem 1rem;padding:.7rem;border-radius:10px;background:rgba(255,255,255,.08);display:flex;flex-direction:column;color:#fff}
+.sb-u span{font-size:11px;color:#FDBA74;font-weight:700}
+.sb nav{flex:1;padding:0 .75rem;overflow-y:auto}
+.sb nav a,.sb-x{display:flex;gap:.7rem;align-items:center;padding:.75rem;border-radius:10px;color:#C7D2FE;text-decoration:none;min-height:44px;margin-bottom:2px;cursor:pointer}
+.sb nav a:hover,.sb-x:hover{background:var(--sb-h);color:#fff}
+.sb nav a.on{background:var(--btn);color:#fff;font-weight:700}
+.sb-x{margin:.75rem}
+.sb-ov{position:fixed;inset:0;background:rgba(15,23,42,.5);z-index:1030;display:none}.sb-ov.buka{display:block}
+.tb{display:flex;align-items:center;gap:.75rem;padding:.6rem 1rem;background:var(--card);border-bottom:1px solid var(--bd);position:sticky;top:0;z-index:100}
+@media(min-width:992px){.sb{transform:none}.am{margin-left:260px}.sb-ov{display:none!important}.hero h1{font-size:28px}}
+@media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+
+/* Rekap & Laporan */
+.bar{height:8px;border-radius:9999px;background:var(--b-mu);overflow:hidden}.bar span{display:block;height:100%;border-radius:9999px}
+.only-print{display:none!important}
+@media print{
+  :root,[data-theme=dark]{--bg:#fff;--card:#fff;--tx:#000;--mu:#555;--bd:#ddd;--b-mu:#eee}
+  .sb,.tb,.sb-ov,.no-print,.toast-container,.modal{display:none!important}
+  .am{margin-left:0!important}#konten{padding:0!important}body{background:#fff!important;color:#000}
+  .card-x{box-shadow:none!important;break-inside:avoid}
+  .only-print{display:block!important}table.only-print{display:table!important}
+}
+/* Aturan di portal warga */
+.aturan{border-bottom:1px solid var(--bd);padding:.35rem 0}.aturan:last-child{border:0}.aturan summary{cursor:pointer;min-height:40px;display:flex;align-items:center}.aturan p{margin:.25rem 0 .6rem;color:var(--mu);white-space:pre-line}
